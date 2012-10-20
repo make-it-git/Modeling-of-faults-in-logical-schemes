@@ -45,6 +45,10 @@ class BaseComponent:
 
     def attach_input_line(self, i, line):
         self.__input_lines[i] = line
+        line.add_component(self)
+
+    def get_output_line(self):
+        return self.__output_line
 
 
 class BaseLine:
@@ -53,6 +57,7 @@ class BaseLine:
         self.__input = None
         self.__output = None
         self.__output_lines = []
+        self.__components = []
 
     def set_input(self, value):
         if value in [0, 1]:
@@ -83,9 +88,15 @@ class BaseLine:
         self.__input = None
         self.__output = None
 
-    def attachOutputLine(self, line):
+    def attach_output_line(self, line):
         '''should call line.set_input every time something changes in self'''
         self.__output_lines.append(line)
+
+    def add_component(self, component):
+        self.__components.append(component)
+
+    def get_components(self):
+        return self.__components
 
 if __name__ == '__main__':
     pass

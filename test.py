@@ -7,6 +7,12 @@ def function_and(inputs):
     return inputs[0] and inputs[1]
 def function_or(inputs):
     return inputs[0] or inputs[1]
+def function_neg(inputs):
+    i = inputs[0]
+    if i == 1:
+        return 0
+    if i == 0:
+        return 1
 def function_in(inputs):
     return inputs[0]
 
@@ -160,7 +166,57 @@ class TestBaseConnection(unittest.TestCase):
         c_or.out()
         self.assertEqual(1, l_out.get_value())
 
+    def test_split_lines(self):
+        '''not(in1) or not(in1)
+        function is not a mistake'''
+        c_in = main.BaseComponent(1, function_in)
+        c_neg1 = main.BaseComponent(1, function_neg)
+        c_neg2 = main.BaseComponent(1, function_neg)
+        c_or = main.BaseComponent(2, function_or)
 
+        l_in1 = main.BaseLine()
+        l_in2 = main.BaseLine()#1 to 2 to neg1
+        l_in3 = main.BaseLine()#1 to 3 to neg2
+        l_in4 = main.BaseLine()#to 'or'
+        l_in5 = main.BaseLine()#to 'or'
+        l_out = main.BaseLine()
+
+        c_in.attach_output_line(l_in1)
+        l_in1.attach_output_line(l_in2)
+        l_in1.attach_output_line(l_in3)
+        c_neg1.attach_input_line(0, l_in2)
+        c_neg2.attach_input_line(0, l_in3)
+
+        c_neg1.attach_output_line(l_in4)
+        c_neg2.attach_output_line(l_in5)
+        c_or.attach_input_line(0, l_in4)
+        c_or.attach_input_line(1, l_in5)
+
+        c_or.attach_output_line(l_out)
+
+        c_in.set_input(0, 0)
+        c_in.out()
+        c_neg1.set_input(0, l_in2.get_value())
+        c_neg2.set_input(0, l_in3.get_value())
+        c_neg1.out()
+        c_neg2.out()
+        c_or.set_input(0, l_in4.get_value())
+        c_or.set_input(1, l_in5.get_value())
+        c_or.out()
+        self.assertEqual(1, l_out.get_value())
+
+    def test_get_lines_and_components(self):
+        c = main.BaseComponent(1, function_in)
+        neg = main.BaseComponent(1, function_neg)
+        l_in = main.BaseLine()
+        l_out = main.BaseLine()
+        c.attach_output_line(l_in)
+        neg.attach_input_line(0, l_in)
+        neg.attach_output_line(l_out)
+        comps = c.get_output_line().get_components()
+        self.assertIs(neg, comps[0])
+        line = neg.get_output_line()
+        self.assertIs(line, l_out)
 
 if __name__ == '__main__':
     unittest.main()
