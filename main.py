@@ -174,7 +174,7 @@ def perform_modeling(inputs, output_line, all_components):
                 for line in lines:
                     component = line.get_component()
                     if component is None: #this line is connected to other lines
-                        remained_lines = line.get_output_lines()
+                        remained_lines.extend(line.get_output_lines())
                     else:
                         cur_processing.append(component) # for every input line component will be added
                         #because of this we remove duplicates from cur_processing by using set()
@@ -197,5 +197,76 @@ def perform_modeling(inputs, output_line, all_components):
                 cur_processing = list(set(cur_processing)) # remove duplicates
     return [output_values, detectable_failures]
 
+import json
+import sys
+def function_and(inputs):
+    return inputs[0] and inputs[1]
+def function_or(inputs):
+    return inputs[0] or inputs[1]
+def function_neg(inputs):
+    i = inputs[0]
+    if i == 1:
+        return 0
+    if i == 0:
+        return 1
+def function_in(inputs):
+    return inputs[0]
+def function_xor(inputs):
+    x1 = inputs[0]
+    x2 = inputs[1]
+    return int(x1 and not(x2) or not(x1) and x2)
+
 if __name__ == '__main__':
-    pass
+    if len(sys.argv) != 2:
+        print("Usage: " + sys.argv[0] + " json_file")
+        sys.exit(1)
+    json_file = open(sys.argv[1])
+    json_data = json.loads(json_file.read())
+    json_file.close()
+    all_inputs = []
+    all_lines = []
+    output_line = None
+    all_components = []
+
+    output_line = BaseLine(json_data["out"])
+    lines = []
+    for component in json_data["components"]:
+        lines.extend(component["in"])
+        lines.append(component["out"])
+    if "lines" in json_data:
+        for line in json_data["lines"]:
+            lines.append(line["line"])
+            lines.extend(line["to"])
+    lines = sorted(list(set([int(i) for i in lines])))
+    for line in lines:
+        if str(line) == str(output_line):
+            all_lines.append(output_line)
+        else:
+            all_lines.append(BaseLine(str(line)))
+    if "lines" in json_data:
+        for line in json_data["lines"]:
+            for to_line in line["to"]:
+                all_lines[int(line["line"]) - 1].attach_output_line(all_lines[int(to_line) - 1])
+    all_inputs = [BaseComponent(1, function_in) for i in range(len(json_data["in"]))]
+    i = 0
+    for input in json_data["in"]:
+        all_inputs[i].attach_output_line(all_lines[int(input) - 1])
+        i += 1
+    for component in json_data["components"]:
+        all_components.append(BaseComponent(len(component["in"]), eval("function_" + component["function"])))
+        all_components[-1].attach_output_line(all_lines[int(component["out"]) - 1]) # starts from 1, not from zero
+        i = 0
+        for input_line in component["in"]:
+            all_components[-1].attach_input_line(i, all_lines[int(input_line) - 1])
+            i += 1
+
+    output = perform_modeling(all_inputs, output_line, all_components)
+    input_values = [i for i in itertools.product([0, 1], repeat = len(all_inputs))]
+    i = 0
+    for valid in output[0]:
+        print(input_values[i], end=": ")
+        print(valid)
+        i += 1
+    for failure in output[1]:
+        print(failure)
+

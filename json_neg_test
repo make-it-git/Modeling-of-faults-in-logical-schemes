@@ -1,0 +1,11 @@
+{
+"in": "1",
+"out": "2",
+"components": [
+    {
+        "function" : "neg",
+        "in": "1",
+        "out": "2"
+    }
+    ]
+}
