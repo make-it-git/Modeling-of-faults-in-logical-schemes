@@ -188,7 +188,7 @@ def perform_modeling(inputs, output_line, all_components):
                             current_valid_output_value = output_line.get_value()
                         else:
                             if current_valid_output_value != output_line.get_value():
-                                detectable_failures.append([input, str(failure[0]), failure[1], output_line.get_value(), "valid: " + str(current_valid_output_value)])
+                                detectable_failures.append([input, "line: " + str(failure[0]), "failure: " + str(failure[1]), "out: " + str(output_line.get_value()), "valid out: " + str(current_valid_output_value)])
                         break
                 for line in remained_lines:
                     component = line.get_component()
