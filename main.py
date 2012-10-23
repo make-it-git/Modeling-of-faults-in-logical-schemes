@@ -24,11 +24,12 @@ class BaseComponent:
         if self.ready():
             value = self.__function(self.__input_ports)
             if self.__output_line is None:
-                raise Exception("Line is not attached")
+                raise Exception("Line is not attached") #must call attach_output_line
             else:
-                self.__output_line.set_input(value)
+                self.__output_line.set_input(value) #write result of function to output line
                 return value
         else:
+            # always call ready() method before calling out()
             raise Exception("Function not ready to be calculated. Not all inputs are set")
 
     def ready(self):
@@ -95,7 +96,7 @@ class BaseLine:
         self.__output = None
 
     def attach_output_line(self, line):
-        '''should call line.set_input every time something changes in self'''
+        '''must call line.set_input every time something is changed in self'''
         self.__output_lines.append(line)
 
     def add_component(self, component, port): #only one component can be attached to this line
@@ -115,33 +116,21 @@ class BaseLine:
         return(self.__id)
 
 import itertools
-def debug_list(lst):
-    o = [str(i) for i in lst]
-    out = ""
-    for i in o:
-        out += i
-        out += ":"
-    return out
-def perform_modeling(inputs, output_line):
+def perform_modeling(inputs, output_line, all_components):
     # it creates all possible combinations of 0,1 of length(inputs)
     # if len(inputs) = 2, then input_values = [(0, 0), (0, 1), (1, 0), (1, 1)]
-    #input_values = []
-    #for i in itertools.product([0, 1], repeat = len(inputs)):
-    #    input_values.append(i)
     input_values = [i for i in itertools.product([0, 1], repeat = len(inputs))]
-    output_values = []
+    output_values = [] # to return from function
     for input in input_values:
-        cur_processing = inputs[:]
+        for c in all_components:
+            c.clear() # to avoid possible problems from previous iterations
+        cur_processing = inputs[:] # copy list
         i = 0
-        for el in cur_processing:
-            el.set_input(0, input[i])
-            el.out()
+        for component in cur_processing: # set input of scheme
+            component.set_input(0, input[i])
+            component.out()
             i += 1
         while len(cur_processing) > 0: # for every iteration
-            #lines = []
-            #for component in cur_processing:
-            #    if component.ready():
-            #        lines.append(component.get_output_line())
             lines = [component.get_output_line() for component in cur_processing if component.ready()]
             components_to_remove = []
             i = 0

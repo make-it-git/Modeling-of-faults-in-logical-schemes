@@ -242,7 +242,8 @@ class TestBasicModeling(unittest.TestCase):
         c_and.attach_input_line(1, l_2)
         c_and.attach_output_line(l_out)
 
-        output = main.perform_modeling([c_in1, c_in2], l_out)
+        components = [c_and]
+        output = main.perform_modeling([c_in1, c_in2], l_out, components)
         self.assertEqual(output, [0, 0, 0, 1])
 
     def test_more_components(self):
@@ -279,8 +280,42 @@ class TestBasicModeling(unittest.TestCase):
         c_or.attach_input_line(1, l3)
         c_or.attach_output_line(l6)
 
-        output = main.perform_modeling([in1, in2, in3], l6)
+        components = [c_neg, c_and, c_or]
+        output = main.perform_modeling([in1, in2, in3], l6, components)
         self.assertEqual(output, [0, 1, 1, 1, 0, 1, 0, 1])
+
+    def test_line_split(self):
+        '''
+        not(x1) or x1 and x2
+        '''
+        comp = self.c
+        line = self.l
+        input = [comp(1, function_in) for i in range(2)]
+        lines = [line(str(i)) for i in range(7)]
+        c_neg = comp(1, function_neg)
+        c_and = comp(2, function_and)
+        c_or = comp(2, function_or)
+
+        input[0].attach_output_line(lines[0])
+        input[1].attach_output_line(lines[1])
+
+        lines[0].attach_output_line(lines[2])
+        lines[0].attach_output_line(lines[3])
+
+        c_neg.attach_input_line(0, lines[2])
+        c_neg.attach_output_line(lines[4])
+
+        c_and.attach_input_line(0, lines[3])
+        c_and.attach_input_line(1, lines[1])
+        c_and.attach_output_line(lines[5])
+
+        c_or.attach_input_line(0, lines[4])
+        c_or.attach_input_line(1, lines[5])
+        c_or.attach_output_line(lines[6])
+
+        components = [c_neg, c_and, c_or]
+        output = main.perform_modeling(input, lines[6], components)
+        self.assertEqual(output, [1, 1, 0, 1])
 
 
 if __name__ == '__main__':
