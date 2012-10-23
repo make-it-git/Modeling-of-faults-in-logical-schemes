@@ -3,7 +3,7 @@
 
 class BaseComponent:
 
-    def __init__(self, number_of_input_ports, function):
+    def __init__(self, number_of_input_ports, function, id = ""):
         '''function = definition of the function to be performed'''
         if number_of_input_ports <= 0:
             raise ValueError("Number of input ports should be positive integer")
@@ -11,6 +11,7 @@ class BaseComponent:
         self.__function = function
         self.__input_lines = [None for i in range(number_of_input_ports)]
         self.__output_line = None
+        self.__id = id
 
     def set_input(self, i, value):
         if i >= 0 and value in [0, 1]:
@@ -45,19 +46,24 @@ class BaseComponent:
 
     def attach_input_line(self, i, line):
         self.__input_lines[i] = line
-        line.add_component(self)
+        line.add_component(self, i) #add this component(self) to line object
 
     def get_output_line(self):
         return self.__output_line
 
+    def __str__(self):
+        return(self.__id)
+
 
 class BaseLine:
 
-    def __init__(self):
+    def __init__(self, id = ""):
         self.__input = None
         self.__output = None
         self.__output_lines = []
-        self.__components = []
+        self.__component = None
+        self.__component_input_port = None
+        self.__id = id
 
     def set_input(self, value):
         if value in [0, 1]:
@@ -92,11 +98,84 @@ class BaseLine:
         '''should call line.set_input every time something changes in self'''
         self.__output_lines.append(line)
 
-    def add_component(self, component):
-        self.__components.append(component)
+    def add_component(self, component, port): #only one component can be attached to this line
+        self.__component = component    #to attach many components line should be splitted
+        self.__component_input_port = port
 
-    def get_components(self):
-        return self.__components
+    def get_component(self):
+        return self.__component
+
+    def get_component_port(self):
+        return self.__component_input_port
+
+    def get_output_lines(self):
+        return self.__output_lines
+
+    def __str__(self):
+        return(self.__id)
+
+import itertools
+def debug_list(lst):
+    o = [str(i) for i in lst]
+    out = ""
+    for i in o:
+        out += i
+        out += ":"
+    return out
+def perform_modeling(inputs, output_line):
+    # it creates all possible combinations of 0,1 of length(inputs)
+    # if len(inputs) = 2, then input_values = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    #input_values = []
+    #for i in itertools.product([0, 1], repeat = len(inputs)):
+    #    input_values.append(i)
+    input_values = [i for i in itertools.product([0, 1], repeat = len(inputs))]
+    output_values = []
+    for input in input_values:
+        cur_processing = inputs[:]
+        i = 0
+        for el in cur_processing:
+            el.set_input(0, input[i])
+            el.out()
+            i += 1
+        while len(cur_processing) > 0: # for every iteration
+            #lines = []
+            #for component in cur_processing:
+            #    if component.ready():
+            #        lines.append(component.get_output_line())
+            lines = [component.get_output_line() for component in cur_processing if component.ready()]
+            components_to_remove = []
+            i = 0
+            for component in cur_processing:
+                if component.ready():
+                    components_to_remove.append(i)
+                    component.out() # from now get_value() on output_lines can be called
+                i += 1
+            i = 0
+            for k in components_to_remove:
+                cur_processing.pop(k - i)
+                i += 1
+
+            remained_lines = [] #splitted line
+            for line in lines:
+                component = line.get_component()
+                if component is None: #this line is connected to other lines
+                    remained_lines = line.get_output_lines()
+                else:
+                    cur_processing.append(component) # for every input line component will be added
+                    #because of this we remove duplicates from cur_processing by using set()
+                    component.set_input(line.get_component_port(), line.get_value())
+            if len(remained_lines) == 0: #it can be output line
+                if len(lines) == 1 and lines[0] is output_line:
+                    #print(input, end=' ')
+                    #print(output_line.get_value())
+                    output_values.append(output_line.get_value())
+                    break
+            for line in remained_lines:
+                component = line.get_component()
+                cur_processing.append(component)
+                component.set_input(line.get_component_port(), line.get_value())
+            cur_processing = list(set(cur_processing)) # remove duplicates
+    return output_values
 
 if __name__ == '__main__':
     pass

@@ -168,7 +168,7 @@ class TestBaseConnection(unittest.TestCase):
 
     def test_split_lines(self):
         '''not(in1) or not(in1)
-        function is not a mistake'''
+        function is not a mistake. it tests line's splitting'''
         c_in = main.BaseComponent(1, function_in)
         c_neg1 = main.BaseComponent(1, function_neg)
         c_neg2 = main.BaseComponent(1, function_neg)
@@ -213,10 +213,75 @@ class TestBaseConnection(unittest.TestCase):
         c.attach_output_line(l_in)
         neg.attach_input_line(0, l_in)
         neg.attach_output_line(l_out)
-        comps = c.get_output_line().get_components()
-        self.assertIs(neg, comps[0])
+        comp = c.get_output_line().get_component()
+        self.assertIs(neg, comp)
         line = neg.get_output_line()
         self.assertIs(line, l_out)
+
+class TestBasicModeling(unittest.TestCase):
+
+    def setUp(self):
+        self.c = main.BaseComponent
+        self.l = main.BaseLine
+
+    def test_base_modeling(self):
+        comp = self.c
+        line = self.l
+
+        c_in1 = comp(1, function_in, "in1")
+        c_in2 = comp(1, function_in, "in2")
+        c_and = comp(2, function_and, "and")
+
+        l_1 = line("l1")
+        l_2 = line("l2")
+        l_out = line("lout")
+
+        c_in1.attach_output_line(l_1)
+        c_in2.attach_output_line(l_2)
+        c_and.attach_input_line(0, l_1)
+        c_and.attach_input_line(1, l_2)
+        c_and.attach_output_line(l_out)
+
+        output = main.perform_modeling([c_in1, c_in2], l_out)
+        self.assertEqual(output, [0, 0, 0, 1])
+
+    def test_more_components(self):
+        '''
+        not(x1) and x2 or x3
+        '''
+        comp = self.c
+        line = self.l
+        in1 = comp(1, function_in, "in1")
+        in2 = comp(1, function_in, "in2")
+        in3 = comp(1, function_in, "in3")
+        c_neg = comp(1, function_neg, "neg")
+        c_and = comp(2, function_and, "and")
+        c_or = comp(2, function_or, "or")
+        l1 = line("l1")
+        l2 = line("l2")
+        l3 = line("l3")
+        l4 = line("l4")
+        l5 = line("l5")
+        l6 = line("l6") #out
+
+        in1.attach_output_line(l1)
+        in2.attach_output_line(l2)
+        in3.attach_output_line(l3)
+
+        c_neg.attach_input_line(0, l1)
+        c_neg.attach_output_line(l4)
+
+        c_and.attach_input_line(0, l4)
+        c_and.attach_input_line(1, l2)
+        c_and.attach_output_line(l5)
+
+        c_or.attach_input_line(0, l5)
+        c_or.attach_input_line(1, l3)
+        c_or.attach_output_line(l6)
+
+        output = main.perform_modeling([in1, in2, in3], l6)
+        self.assertEqual(output, [0, 1, 1, 1, 0, 1, 0, 1])
+
 
 if __name__ == '__main__':
     unittest.main()
