@@ -244,7 +244,9 @@ class TestBasicModeling(unittest.TestCase):
 
         components = [c_and]
         output = main.perform_modeling([c_in1, c_in2], l_out, components)
-        self.assertEqual(output, [0, 0, 0, 1])
+        self.assertEqual(output[0], [0, 0, 0, 1])
+        #for failure in output[1]:
+        #    print(failure)
 
     def test_more_components(self):
         '''
@@ -282,7 +284,9 @@ class TestBasicModeling(unittest.TestCase):
 
         components = [c_neg, c_and, c_or]
         output = main.perform_modeling([in1, in2, in3], l6, components)
-        self.assertEqual(output, [0, 1, 1, 1, 0, 1, 0, 1])
+        self.assertEqual(output[0], [0, 1, 1, 1, 0, 1, 0, 1])
+        #for failure in output[1]:
+        #    print(failure)
 
     def test_line_split(self):
         '''
@@ -315,7 +319,9 @@ class TestBasicModeling(unittest.TestCase):
 
         components = [c_neg, c_and, c_or]
         output = main.perform_modeling(input, lines[6], components)
-        self.assertEqual(output, [1, 1, 0, 1])
+        self.assertEqual(output[0], [1, 1, 0, 1])
+        #for failure in output[1]:
+        #    print(failure)
 
 
 if __name__ == '__main__':

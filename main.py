@@ -52,6 +52,9 @@ class BaseComponent:
     def get_output_line(self):
         return self.__output_line
 
+    def get_input_lines(self):
+        return self.__input_lines
+
     def __str__(self):
         return(self.__id)
 
@@ -121,50 +124,78 @@ def perform_modeling(inputs, output_line, all_components):
     # if len(inputs) = 2, then input_values = [(0, 0), (0, 1), (1, 0), (1, 1)]
     input_values = [i for i in itertools.product([0, 1], repeat = len(inputs))]
     output_values = [] # to return from function
+    #find all lines in scheme
+    all_lines = []
+    for component in all_components:
+        for line in component.get_input_lines():
+            all_lines.append(line)
+        all_lines.append(component.get_output_line())
+    for component in inputs:
+        all_lines.append(component.get_output_line())
+    all_lines = list(set(all_lines))
+    detectable_failures = [] #input, line.__id and line.get_value()
+    all_failures = [None]
+    all_failures.extend([[line, 0] for line in all_lines])
+    all_failures.extend([[line, 1] for line in all_lines])
     for input in input_values:
-        for c in all_components:
-            c.clear() # to avoid possible problems from previous iterations
-        cur_processing = inputs[:] # copy list
-        i = 0
-        for component in cur_processing: # set input of scheme
-            component.set_input(0, input[i])
-            component.out()
-            i += 1
-        while len(cur_processing) > 0: # for every iteration
-            lines = [component.get_output_line() for component in cur_processing if component.ready()]
-            components_to_remove = []
+        current_valid_output_value = None #first iteration sets this variable
+        # find all detectable failures for every input
+        for failure in all_failures:
+            for c in all_components:
+                c.clear() # to avoid possible problems from previous iterations
+            for l in all_lines:
+                l.clear()
+            # set failed line for this iteration
+            if failure != None:
+                line = failure[0]
+                value = failure[1]
+                line.set_output(value)
+            cur_processing = inputs[:] # copy list
             i = 0
-            for component in cur_processing:
-                if component.ready():
-                    components_to_remove.append(i)
-                    component.out() # from now get_value() on output_lines can be called
+            for component in cur_processing: # set input of scheme
+                component.set_input(0, input[i])
+                component.out()
                 i += 1
-            i = 0
-            for k in components_to_remove:
-                cur_processing.pop(k - i)
-                i += 1
+            while len(cur_processing) > 0: # for every iteration
+                lines = [component.get_output_line() for component in cur_processing if component.ready()]
+                components_to_remove = []
+                i = 0
+                for component in cur_processing:
+                    if component.ready():
+                        components_to_remove.append(i)
+                        component.out() # from now get_value() on output_lines can be called
+                    i += 1
+                i = 0
+                for k in components_to_remove:
+                    cur_processing.pop(k - i)
+                    i += 1
 
-            remained_lines = [] #splitted line
-            for line in lines:
-                component = line.get_component()
-                if component is None: #this line is connected to other lines
-                    remained_lines = line.get_output_lines()
-                else:
-                    cur_processing.append(component) # for every input line component will be added
-                    #because of this we remove duplicates from cur_processing by using set()
+                remained_lines = [] #splitted line
+                for line in lines:
+                    component = line.get_component()
+                    if component is None: #this line is connected to other lines
+                        remained_lines = line.get_output_lines()
+                    else:
+                        cur_processing.append(component) # for every input line component will be added
+                        #because of this we remove duplicates from cur_processing by using set()
+                        component.set_input(line.get_component_port(), line.get_value())
+                if len(remained_lines) == 0: #it can be output line
+                    if len(lines) == 1 and lines[0] is output_line:
+                        #print(input, end=' ')
+                        #print(output_line.get_value())
+                        if current_valid_output_value == None:
+                            output_values.append(output_line.get_value())
+                            current_valid_output_value = output_line.get_value()
+                        else:
+                            if current_valid_output_value != output_line.get_value():
+                                detectable_failures.append([input, str(failure[0]), failure[1], output_line.get_value(), "valid: " + str(current_valid_output_value)])
+                        break
+                for line in remained_lines:
+                    component = line.get_component()
+                    cur_processing.append(component)
                     component.set_input(line.get_component_port(), line.get_value())
-            if len(remained_lines) == 0: #it can be output line
-                if len(lines) == 1 and lines[0] is output_line:
-                    #print(input, end=' ')
-                    #print(output_line.get_value())
-                    output_values.append(output_line.get_value())
-                    break
-            for line in remained_lines:
-                component = line.get_component()
-                cur_processing.append(component)
-                component.set_input(line.get_component_port(), line.get_value())
-            cur_processing = list(set(cur_processing)) # remove duplicates
-    return output_values
+                cur_processing = list(set(cur_processing)) # remove duplicates
+    return [output_values, detectable_failures]
 
 if __name__ == '__main__':
     pass
