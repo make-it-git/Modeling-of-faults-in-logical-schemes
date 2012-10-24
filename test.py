@@ -320,8 +320,8 @@ class TestBasicModeling(unittest.TestCase):
         components = [c_neg, c_and, c_or]
         output = main.perform_modeling(input, lines[6], components)
         self.assertEqual(output[0], [1, 1, 0, 1])
-        for failure in output[1]:
-            print(failure)
+        #for failure in output[1]:
+        #    print(failure)
 
 
 if __name__ == '__main__':
