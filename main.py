@@ -123,7 +123,7 @@ def perform_modeling(input_components, output_line, all_components):
     # it creates all possible combinations of 0,1 of length(input_components)
     # if len(input_components) = 2, then input_values = [(0, 0), (0, 1), (1, 0), (1, 1)]
     input_values = [i for i in itertools.product([0, 1], repeat = len(input_components))]
-    output_values = [] # to return from function
+    output_values = [] # input set, output value
     #find all lines in scheme
     all_lines = []
     for component in all_components:
@@ -188,11 +188,12 @@ def perform_modeling(input_components, output_line, all_components):
                 if len(remained_lines) == 0: # it can be output line
                     if len(lines) == 1 and lines[0] is output_line:
                         if current_valid_output_value == None: # first iteration for this input (without failures)
-                            output_values.append(output_line.get_value())
+                            output_values.append([input, output_line.get_value()])
                             current_valid_output_value = output_line.get_value()
                         else:
-                            if current_valid_output_value != output_line.get_value():
-                                detectable_failures.append([input, "line: " + str(failure[0]), "failure: " + str(failure[1]), "out: " + str(output_line.get_value()), "valid out: " + str(current_valid_output_value)])
+                            #if current_valid_output_value != output_line.get_value():
+                            # input set, line number, line value, scheme out, scheme out valid for this input set
+                            detectable_failures.append([input, str(failure[0]), str(failure[1]), output_line.get_value(), current_valid_output_value])
                         break
                 for line in remained_lines:
                     component = line.get_component()
@@ -265,11 +266,75 @@ if __name__ == '__main__':
             i += 1
 
     output = perform_modeling(all_inputs, output_line, all_components)
-    input_values = [i for i in itertools.product([0, 1], repeat = len(all_inputs))]
+    #for valid in output[0]:
+    #    print(valid)
+    #for failure in output[1]:
+        # input set, line number, line value, scheme out, valid scheme out
+    #    print(failure)
+    table = []
+    all_lines = [i[1] for i in output[1]]
+    all_lines = sorted(set(all_lines))
+    for v in output[0]:
+        # v[0] = input set, v[1] - output value
+        failures = [i for i in output[1] if i[0] == v[0]] # for this input set
+        lines = []
+        i = len(all_lines)
+        while i > 0:
+            tmp = [] # will contain only 2 elements (one when line is set to 0, second when line is set to 1)
+            for failure in failures:
+                if failure[1] == all_lines[-i]: # reverse indexing
+                    tmp.append([failure[1], failure[2], failure[3], failure[4]])
+            i -= 1
+            tmp.sort(key = lambda x: x[1]) # sort by line value
+            lines.extend(tmp)
+        # input set, [line number, value, out, valid out]
+        table.append([v[0], lines])
+    # now table contains sorted list for pretty output
+    out = []
     i = 0
-    for valid in output[0]:
-        print(input_values[i], end=": ")
-        print(valid)
+    tmp = []
+    for row in table:
+        # input sets
+        # out.append(row[0][0])
+        tmp.append([i, row[0]])
         i += 1
-    for failure in output[1]:
-        print(failure)
+    out.append(tmp)
+    for row in table:
+        tmp = []
+        for column in row[1]:
+            # column[2] = out, column[3] = valid out
+            line_and_value = str(column[0]) + "/" + str(column[1])
+            if column[2] == column[3]:
+                tmp.append([line_and_value, str(column[2])])
+            else:
+                tmp.append([line_and_value, "_" + str(column[2])])
+        out.append(tmp)
+
+    print("<html>")
+    print('<head><meta charset="utf-8"></head>')
+    print("<body>")
+    print("<table border='2' cellpadding='5'>")
+    print("<tr>")
+    print("<td>Входные наборы</td>")
+    for i in out[0]:
+        print("<td title='" + str(i[1]) + "'>", end="")
+        print(i[0])
+        print("</td>")
+    print("</tr>")
+    for row in zip(*out[1:]):
+        print("<tr>")
+        print("<td>", end="")
+        print(row[0][0])
+        print("</td>")
+        for column in row:
+            if column[1].startswith("_"):
+                print("<td bgcolor='#888888'>", end="")
+                print(column[1][1:])
+            else:
+                print("<td>", end="")
+                print(column[1])
+            print("</td>")
+        print("</tr>")
+    print("</table>")
+    print("</body>")
+    print("</html>")
