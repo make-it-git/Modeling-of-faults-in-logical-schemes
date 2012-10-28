@@ -272,8 +272,9 @@ if __name__ == '__main__':
         # input set, line number, line value, scheme out, valid scheme out
     #    print(failure)
     table = []
-    all_lines = [i[1] for i in output[1]]
+    all_lines = [int(i[1]) for i in output[1]] # conversion to int is required for correct sorting
     all_lines = sorted(set(all_lines))
+    all_lines = [str(i) for i in all_lines]
     for v in output[0]:
         # v[0] = input set, v[1] - output value
         failures = [i for i in output[1] if i[0] == v[0]] # for this input set
@@ -296,8 +297,12 @@ if __name__ == '__main__':
     for row in table:
         # input sets
         # out.append(row[0][0])
-        tmp.append([i, row[0]])
+        tmp.append([i, "".join([ str(i) for i in row[0]]) ])
         i += 1
+    out.append(tmp)
+    tmp = []
+    for v in output[0]:
+        tmp.append(v[1]) # valid out
     out.append(tmp)
     for row in table:
         tmp = []
@@ -314,15 +319,22 @@ if __name__ == '__main__':
     print('<head><meta charset="utf-8"></head>')
     print("<body>")
     print("<table border='2' cellpadding='5'>")
-    print("<tr>")
+    print("<tr align='center'>")
     print("<td>Входные наборы</td>")
     for i in out[0]:
         print("<td title='" + str(i[1]) + "'>", end="")
         print(i[0])
         print("</td>")
     print("</tr>")
-    for row in zip(*out[1:]):
-        print("<tr>")
+    print("<tr align='center'>")
+    print("<td>Выход схемы</td>")
+    for i in out[1]: # valid out
+        print("<td width='20'>", end="")
+        print(i)
+        print("</td>")
+    print("</tr>")
+    for row in zip(*out[2:]): # out[0] - input sets, out[1] - valid outs
+        print("<tr align='center'>")
         print("<td>", end="")
         print(row[0][0])
         print("</td>")
