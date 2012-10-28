@@ -320,31 +320,31 @@ if __name__ == '__main__':
     print("<body>")
     print("<table border='2' cellpadding='5'>")
     print("<tr align='center'>")
-    print("<td>Входные наборы</td>")
+    print("\t<td>Входные наборы</td>")
     for i in out[0]:
-        print("<td title='" + str(i[1]) + "'>", end="")
-        print(i[0])
+        print("\t<td title='" + str(i[1]) + "'>", end="")
+        print(i[0], end="")
         print("</td>")
     print("</tr>")
     print("<tr align='center'>")
-    print("<td>Выход схемы</td>")
+    print("\t<td>Выход схемы</td>")
     for i in out[1]: # valid out
-        print("<td width='20'>", end="")
-        print(i)
+        print("\t<td width='20'>", end="")
+        print(i , end="")
         print("</td>")
     print("</tr>")
     for row in zip(*out[2:]): # out[0] - input sets, out[1] - valid outs
         print("<tr align='center'>")
-        print("<td>", end="")
-        print(row[0][0])
+        print("\t<td>", end="")
+        print(row[0][0], end="")
         print("</td>")
         for column in row:
             if column[1].startswith("_"):
-                print("<td bgcolor='#888888'>", end="")
-                print(column[1][1:])
+                print("\t<td bgcolor='#888888'>", end="")
+                print(column[1][1:], end="") # without leading "_" which means that it is wrong value
             else:
-                print("<td>", end="")
-                print(column[1])
+                print("\t<td>", end="")
+                print(column[1], end="")
             print("</td>")
         print("</tr>")
     print("</table>")
