@@ -338,14 +338,17 @@ if __name__ == '__main__':
         print("\t<td>", end="")
         print(row[0][0], end="")
         print("</td>")
+        i = 0 # for indexing input sets
+        input_sets = [str(k[1]) for k in out[0]]
         for column in row:
             if column[1].startswith("_"):
-                print("\t<td bgcolor='#888888'>", end="")
+                print("\t<td bgcolor='#888888' title='" + input_sets[i] + "'>", end="")
                 print(column[1][1:], end="") # without leading "_" which means that it is wrong value
             else:
-                print("\t<td>", end="")
+                print("\t<td title='" + input_sets[i] + "'>", end="")
                 print(column[1], end="")
             print("</td>")
+            i += 1
         print("</tr>")
     print("</table>")
     print("</body>")
