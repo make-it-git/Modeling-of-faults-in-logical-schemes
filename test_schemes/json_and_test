@@ -5,7 +5,8 @@
     {
         "function" : "and",
         "in": ["1", "2"],
-        "out": "3"
+        "out": "3",
+		"name": "and"
     }
     ]
 }

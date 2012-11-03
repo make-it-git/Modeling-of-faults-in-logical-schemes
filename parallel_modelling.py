@@ -78,7 +78,7 @@ def perform_modelling(input_components, output_line, all_components):
                             #if current_valid_output_value != output_line.get_value():
                             # input set, line number, line value, scheme out, scheme out valid for this input set
                             detectable_failures.append([input, str(failure[0]), str(failure[1]), output_line.get_value(), current_valid_output_value])
-                        break
+                        # break
                 for line in remained_lines:
                     component = line.get_output_component()
                     cur_processing.append(component)

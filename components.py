@@ -66,8 +66,8 @@ class BaseLine:
         self.__input = None # input value
         self.__output = None # output value (in case of failure)
         self.__output_lines = []
-        self.__output_component = None
-        self.__output_component_input_port = None
+        self._output_component = None
+        self._output_component_input_port = None
         self.__id = id
         self.__input_component = None # if input component is attached this var is not None
         self.__input_line = None # otherwise __inout_component is None and __input_line is set to valid value
@@ -107,14 +107,14 @@ class BaseLine:
         line.set_input_line(self)
 
     def set_output_component(self, component, port): #only one component can be attached to this line
-        self.__output_component = component    #to attach many components line should be splitted
-        self.__output_component_input_port = port
+        self._output_component = component    #to attach many components line should be splitted
+        self._output_component_input_port = port
 
     def get_output_component(self):
-        return self.__output_component
+        return self._output_component
 
     def get_output_component_input_port(self):
-        return self.__output_component_input_port
+        return self._output_component_input_port
 
     def get_output_lines(self):
         return self.__output_lines

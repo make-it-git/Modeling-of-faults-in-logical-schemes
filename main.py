@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from components import BaseComponent, BaseLine
-from parallel_modelling import perform_modelling
+# from components import BaseComponent, BaseLine
+# from parallel_modelling import perform_modelling
+from concurrent_modelling import ConcurrentComponent as BaseComponent, ConcurrentLine as BaseLine
+from concurrent_modelling import perform_modelling
 import json
 import sys
 
@@ -54,13 +56,14 @@ if __name__ == '__main__':
         for line in json_data["lines"]:
             for to_line in line["to"]:
                 all_lines[int(line["line"]) - 1].attach_output_line(all_lines[int(to_line) - 1])
-    all_inputs = [BaseComponent(1, function_in) for i in range(len(json_data["in"]))]
+    all_inputs = [BaseComponent(1, function_in, "in") for i in range(len(json_data["in"]))]
     i = 0
     for input in json_data["in"]:
         all_inputs[i].attach_output_line(all_lines[int(input) - 1])
         i += 1
     for component in json_data["components"]:
-        all_components.append(BaseComponent(len(component["in"]), eval("function_" + component["function"])))
+        component_name = "" if "name" not in component else component["name"]
+        all_components.append(BaseComponent(len(component["in"]), eval("function_" + component["function"]), component_name))
         all_components[-1].attach_output_line(all_lines[int(component["out"]) - 1]) # starts from 1, not from zero
         i = 0
         for input_line in component["in"]:
@@ -68,11 +71,21 @@ if __name__ == '__main__':
             i += 1
 
     output = perform_modelling(all_inputs, output_line, all_components)
+    #for c in all_components:
+    #    print(str(c))
+    #    for in_set in range(0, 16):
+    #        print("\t" + str(in_set))
+    #        print("\t\t" + str(len(c.get_failures(in_set))))
+            #for f in c.get_failures(in_set):
+            #    print("\t" + str(f[0]) + "/" + str(f[1]))
+                #print(f)
     #for valid in output[0]:
     #    print(valid)
     #for failure in output[1]:
         # input set, line number, line value, scheme out, valid scheme out
     #    print(failure)
+    import sys
+    sys.exit(0)
     table = []
     all_lines = [int(i[1]) for i in output[1]] # conversion to int is required for correct sorting
     all_lines = sorted(set(all_lines))
