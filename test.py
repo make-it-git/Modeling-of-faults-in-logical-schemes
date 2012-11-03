@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from components import BaseComponent, BaseLine
-from main import perform_modeling
+from parallel_modelling import perform_modelling
 
 import unittest
 def function_and(inputs):
@@ -245,7 +245,7 @@ class TestBasicModeling(unittest.TestCase):
         c_and.attach_output_line(l_out)
 
         components = [c_and]
-        output = perform_modeling([c_in1, c_in2], l_out, components)
+        output = perform_modelling([c_in1, c_in2], l_out, components)
         self.assertEqual([ i[1] for i in output[0]], [0, 0, 0, 1])
         #for failure in output[1]:
         #    print(failure)
@@ -285,7 +285,7 @@ class TestBasicModeling(unittest.TestCase):
         c_or.attach_output_line(l6)
 
         components = [c_neg, c_and, c_or]
-        output = perform_modeling([in1, in2, in3], l6, components)
+        output = perform_modelling([in1, in2, in3], l6, components)
         self.assertEqual([ i[1] for i in output[0]], [0, 1, 1, 1, 0, 1, 0, 1])
         #for failure in output[1]:
         #    print(failure)
@@ -320,7 +320,7 @@ class TestBasicModeling(unittest.TestCase):
         c_or.attach_output_line(lines[6])
 
         components = [c_neg, c_and, c_or]
-        output = perform_modeling(input, lines[6], components)
+        output = perform_modelling(input, lines[6], components)
         self.assertEqual([ i[1] for i in output[0]], [1, 1, 0, 1])
         #for failure in output[1]:
         #    print(failure)
