@@ -8,30 +8,32 @@ class ConcurrentComponent(BaseComponent):
 
     def __init__(self, number_of_input_ports, function, id = ""):
         BaseComponent.__init__(self, number_of_input_ports, function, id)
-        self.__failures = None
+        self.__failures = dict()
+        self.__last_failures = []
 
     def clear(self):
         BaseComponent.clear(self)
-        self.__failures = None
 
     def add_failures(self, failures, input_set):
-        #print(input_set)
-        #print(str(self))
-        if self.__failures:
-            self.__failures.append(failures)
+        s = 0
+        # translate list into number
+        for i in input_set:
+            s = s * 2 + i
+        input_set = s
+        if input_set in self.__failures:
+            for f in failures:
+                if f not in self.__failures[input_set]:
+                    self.__failures[input_set].append(f)
         else:
-            self.__failures = []
-            self.__failures.append(failures)
-        #print(len(self.__failures))
+            self.__failures[input_set] = []
+            self.__failures[input_set].extend(failures)
+        self.__last_failures = failures
 
     def get_failures(self, input_set = None):
         if input_set:
             return self.__failures[input_set]
         else:
-            if self.__failures:
-                return self.__failures[-1]
-            else:
-                return []
+            return self.__last_failures
 
 class ConcurrentLine(BaseLine):
 
@@ -92,7 +94,6 @@ def perform_modelling(input_components, output_line, all_components):
                             # component.out()
                         # always add output line's failure
                         transportable_failures.append( [component.get_output_line(), 0 if valid_out else 1] )
-                        # print(str(input) + str(component) + str([str(i[0]) + "/" + str(i[1]) for i in transportable_failures]))
                         # now we have all possible failures ONLY for this component
                         # we must check if some transportable failures from previous components can be transported
                         # first of all we check NOT splitted input lines
@@ -129,15 +130,12 @@ def perform_modelling(input_components, output_line, all_components):
                                     if component.out() != valid_out:
                                         transportable_failures.append( [in_component.get_output_line(), 0 if valid_line_value else 1] )
                                     in_component.get_output_line().set_input(valid_line_value)
-
-
-                        #print(str(input) + str(component) + "|" +  str(len(transportable_failures)))
-                        component.add_failures(transportable_failures, input)
-                        print(str(input) + str(component) + str(sorted([str(i[0]) + "/" + str(i[1]) for i in transportable_failures])))
-                    # remove these 2 lines
-                    #if component.get_failures() and str(component == "17-18-19"):
-                    #   print([ [input, str(component), str(i[0]), i[1]] for i in component.get_failures()])
-
+                        failures_set = []
+                        for f in transportable_failures:
+                            if f not in failures_set:
+                                failures_set.append(f) # remove duplicates
+                        component.add_failures(failures_set, input)
+                        #print(str(input) + str(component) + str(sorted([str(i[0]) + "/" + str(i[1]) for i in failures_set])))
                 i += 1
             i = 0
             for k in components_to_remove:
@@ -156,18 +154,10 @@ def perform_modelling(input_components, output_line, all_components):
                     component.set_input(line.get_output_component_input_port(), line.get_value())
             if len(remained_lines) == 0: # it can be output line
                 if len(lines) == 1 and lines[0] is output_line:
-                    # if current_valid_output_value == None: # first iteration for this input (without failures)
                     output_values.append([input, output_line.get_value()])
-                    # current_valid_output_value = output_line.get_value()
-                    # else:
-                    #    #if current_valid_output_value != output_line.get_value():
-                    #    # input set, line number, line value, scheme out, scheme out valid for this input set
-                    #    detectable_failures.append([input, str(failure[0]), str(failure[1]), output_line.get_value(), current_valid_output_value])
-                    # break
             for line in remained_lines:
                 component = line.get_output_component()
                 cur_processing.append(component)
                 component.set_input(line.get_output_component_input_port(), line.get_value())
             cur_processing = list(set(cur_processing)) # remove duplicates
-    print([i[1] for i in output_values] == [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1])
     return [output_values, all_components]
