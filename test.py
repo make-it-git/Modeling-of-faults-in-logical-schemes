@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import main
+from components import BaseComponent, BaseLine
+from main import perform_modeling
+
 import unittest
 def function_and(inputs):
     return inputs[0] and inputs[1]
@@ -19,11 +21,11 @@ def function_in(inputs):
 class TestBaseComponent(unittest.TestCase):
 
     def test_exception(self):
-        base_component = main.BaseComponent(2, function_and)
+        base_component = BaseComponent(2, function_and)
         self.assertRaises(Exception, base_component.out)
 
     def test_ready(self):
-        base_component = main.BaseComponent(2, function_and)
+        base_component = BaseComponent(2, function_and)
         self.assertFalse(base_component.ready())
         base_component.set_input(0, 0)
         self.assertFalse(base_component.ready())
@@ -31,13 +33,13 @@ class TestBaseComponent(unittest.TestCase):
         self.assertTrue(base_component.ready())
 
     def test_set_input(self):
-        base_component = main.BaseComponent(2, function_and)
+        base_component = BaseComponent(2, function_and)
         self.assertRaises(ValueError, base_component.set_input, -1, 0)
         self.assertRaises(ValueError, base_component.set_input, 0, 2)
 
     def test_out(self):
-        base_component = main.BaseComponent(2, function_and)
-        base_line = main.BaseLine()
+        base_component = BaseComponent(2, function_and)
+        base_line = BaseLine()
         base_component.attach_output_line(base_line)
         base_component.set_input(0, 0)
         base_component.set_input(1, 0)
@@ -53,7 +55,7 @@ class TestBaseComponent(unittest.TestCase):
         self.assertEqual(1, base_component.out())
 
     def test_clear(self):
-        base_component = main.BaseComponent(2, function_and)
+        base_component = BaseComponent(2, function_and)
         base_component.set_input(0, 0)
         base_component.set_input(1, 1)
         self.assertTrue(base_component.ready())
@@ -63,21 +65,21 @@ class TestBaseComponent(unittest.TestCase):
 class TestBaseLine(unittest.TestCase):
 
     def test_set_input(self):
-       base_line = main.BaseLine()
+       base_line = BaseLine()
        self.assertRaises(ValueError, base_line.set_input,-1)
        self.assertRaises(ValueError, base_line.set_input, 2)
        base_line.set_input(1)
        base_line.set_input(0)
 
     def test_set_output(self):
-       base_line = main.BaseLine()
+       base_line = BaseLine()
        self.assertRaises(ValueError, base_line.set_output, -1)
        self.assertRaises(ValueError, base_line.set_output, 2)
        base_line.set_output(1)
        base_line.set_output(0)
 
     def test_clear(self):
-       base_line = main.BaseLine()
+       base_line = BaseLine()
        self.assertIsNone(base_line.get_value())
        base_line.set_input(1)
        self.assertEqual(1, base_line.get_value())
@@ -90,14 +92,14 @@ class TestBaseConnection(unittest.TestCase):
 
     def test_base_connection(self):
         #inputs
-        comp_in1 = main.BaseComponent(1, function_in)
-        comp_in2 = main.BaseComponent(1, function_in)
+        comp_in1 = BaseComponent(1, function_in)
+        comp_in2 = BaseComponent(1, function_in)
         #and
-        comp_and1 = main.BaseComponent(2, function_and)
+        comp_and1 = BaseComponent(2, function_and)
         #lines
-        line_in1_to_and1 = main.BaseLine()
-        line_in2_to_and1 = main.BaseLine()
-        line_out = main.BaseLine()
+        line_in1_to_and1 = BaseLine()
+        line_in2_to_and1 = BaseLine()
+        line_out = BaseLine()
 
         comp_in1.attach_output_line(line_in1_to_and1)
         comp_in2.attach_output_line(line_in2_to_and1)
@@ -127,19 +129,19 @@ class TestBaseConnection(unittest.TestCase):
         '''3 inputs, 1 output
         in1 and in2 or in3'''
         #components
-        c_in1 = main.BaseComponent(1, function_in)
-        c_in2 = main.BaseComponent(1, function_in)
-        c_in3 = main.BaseComponent(1, function_in)
-        c_and = main.BaseComponent(2, function_and)
-        c_or = main.BaseComponent(2, function_or)
+        c_in1 = BaseComponent(1, function_in)
+        c_in2 = BaseComponent(1, function_in)
+        c_in3 = BaseComponent(1, function_in)
+        c_and = BaseComponent(2, function_and)
+        c_or = BaseComponent(2, function_or)
         #lines (1 and 2 connects to component 'and')
         #3 connects to component 'or'
         #4 links output of 'and' and input of 'or'
-        l_in1 = main.BaseLine()
-        l_in2 = main.BaseLine()
-        l_in3 = main.BaseLine()
-        l_in4 = main.BaseLine()
-        l_out = main.BaseLine()
+        l_in1 = BaseLine()
+        l_in2 = BaseLine()
+        l_in3 = BaseLine()
+        l_in4 = BaseLine()
+        l_out = BaseLine()
 
         c_in1.attach_output_line(l_in1)
         c_in2.attach_output_line(l_in2)
@@ -169,17 +171,17 @@ class TestBaseConnection(unittest.TestCase):
     def test_split_lines(self):
         '''not(in1) or not(in1)
         function is not a mistake. it tests line's splitting'''
-        c_in = main.BaseComponent(1, function_in)
-        c_neg1 = main.BaseComponent(1, function_neg)
-        c_neg2 = main.BaseComponent(1, function_neg)
-        c_or = main.BaseComponent(2, function_or)
+        c_in = BaseComponent(1, function_in)
+        c_neg1 = BaseComponent(1, function_neg)
+        c_neg2 = BaseComponent(1, function_neg)
+        c_or = BaseComponent(2, function_or)
 
-        l_in1 = main.BaseLine()
-        l_in2 = main.BaseLine()#1 to 2 to neg1
-        l_in3 = main.BaseLine()#1 to 3 to neg2
-        l_in4 = main.BaseLine()#to 'or'
-        l_in5 = main.BaseLine()#to 'or'
-        l_out = main.BaseLine()
+        l_in1 = BaseLine()
+        l_in2 = BaseLine()#1 to 2 to neg1
+        l_in3 = BaseLine()#1 to 3 to neg2
+        l_in4 = BaseLine()#to 'or'
+        l_in5 = BaseLine()#to 'or'
+        l_out = BaseLine()
 
         c_in.attach_output_line(l_in1)
         l_in1.attach_output_line(l_in2)
@@ -206,14 +208,14 @@ class TestBaseConnection(unittest.TestCase):
         self.assertEqual(1, l_out.get_value())
 
     def test_get_lines_and_components(self):
-        c = main.BaseComponent(1, function_in)
-        neg = main.BaseComponent(1, function_neg)
-        l_in = main.BaseLine()
-        l_out = main.BaseLine()
+        c = BaseComponent(1, function_in)
+        neg = BaseComponent(1, function_neg)
+        l_in = BaseLine()
+        l_out = BaseLine()
         c.attach_output_line(l_in)
         neg.attach_input_line(0, l_in)
         neg.attach_output_line(l_out)
-        comp = c.get_output_line().get_component()
+        comp = c.get_output_line().get_output_component()
         self.assertIs(neg, comp)
         line = neg.get_output_line()
         self.assertIs(line, l_out)
@@ -221,8 +223,8 @@ class TestBaseConnection(unittest.TestCase):
 class TestBasicModeling(unittest.TestCase):
 
     def setUp(self):
-        self.c = main.BaseComponent
-        self.l = main.BaseLine
+        self.c = BaseComponent
+        self.l = BaseLine
 
     def test_base_modeling(self):
         comp = self.c
@@ -243,8 +245,8 @@ class TestBasicModeling(unittest.TestCase):
         c_and.attach_output_line(l_out)
 
         components = [c_and]
-        output = main.perform_modeling([c_in1, c_in2], l_out, components)
-        self.assertEqual(output[0], [0, 0, 0, 1])
+        output = perform_modeling([c_in1, c_in2], l_out, components)
+        self.assertEqual([ i[1] for i in output[0]], [0, 0, 0, 1])
         #for failure in output[1]:
         #    print(failure)
 
@@ -283,8 +285,8 @@ class TestBasicModeling(unittest.TestCase):
         c_or.attach_output_line(l6)
 
         components = [c_neg, c_and, c_or]
-        output = main.perform_modeling([in1, in2, in3], l6, components)
-        self.assertEqual(output[0], [0, 1, 1, 1, 0, 1, 0, 1])
+        output = perform_modeling([in1, in2, in3], l6, components)
+        self.assertEqual([ i[1] for i in output[0]], [0, 1, 1, 1, 0, 1, 0, 1])
         #for failure in output[1]:
         #    print(failure)
 
@@ -318,8 +320,8 @@ class TestBasicModeling(unittest.TestCase):
         c_or.attach_output_line(lines[6])
 
         components = [c_neg, c_and, c_or]
-        output = main.perform_modeling(input, lines[6], components)
-        self.assertEqual(output[0], [1, 1, 0, 1])
+        output = perform_modeling(input, lines[6], components)
+        self.assertEqual([ i[1] for i in output[0]], [1, 1, 0, 1])
         #for failure in output[1]:
         #    print(failure)
 
