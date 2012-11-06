@@ -5,11 +5,11 @@ import sys
 from functions import *
 
 def print_usage(prog_name):
-    print("Usage: " + prog_name + "[parallel|concurrent] json_file html_file")
+    print("Usage: " + prog_name + " [parallel|concurrent] json_file html_file")
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print_usage(prog_name)
+        print_usage(sys.argv[0])
         sys.exit(1)
     if sys.argv[1] == "parallel":
         from parallel_modelling import perform_modelling
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         from concurrent_modelling import perform_modelling
         from concurrent_modelling import ConcurrentComponent as BaseComponent, ConcurrentLine as BaseLine
     else:
-        print_usage(prog_name)
+        print_usage(sys.argv[0])
         sys.exit(1)
     html_file_name = sys.argv[3]
 
