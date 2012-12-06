@@ -192,3 +192,8 @@ def function_xor(inputs):
     x1 = inputs[0]
     x2 = inputs[1]
     return int(x1 and not(x2) or not(x1) and x2)
+
+def function_na2(inputs):
+    x1 = inputs[0]
+    x2 = inputs[1]
+    return int(not(x1 and x2))
