@@ -70,7 +70,7 @@ def perform_modelling(input_components, output_line, all_components):
                         # we can call line.get_value() because lines[] contain only lines with ready to use values (not None)
                         component.set_input(line.get_output_component_input_port(), line.get_value())
                 if len(remained_lines) == 0: # it can be output line
-                    if len(lines) == 1 and lines[0] is output_line:
+                    if len(lines) >= 1 and (output_line in lines):
                         if current_valid_output_value == None: # first iteration for this input (without failures)
                             output_values.append([input, output_line.get_value()])
                             current_valid_output_value = output_line.get_value()
