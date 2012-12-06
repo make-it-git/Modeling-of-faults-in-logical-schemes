@@ -128,10 +128,10 @@ def make_html_output_parallel(output, file_name):
         input_sets = [str(k[1]) for k in out[0]]
         for column in row:
             if column[1].startswith("_"):
-                html_file.write("\t<td bgcolor='#888888' title='" + input_sets[i] + "'>")
+                html_file.write("\t<td bgcolor='#888888' title='" + input_sets[i] + ", " + str(row[0][0]) + "'>")
                 html_file.write(column[1][1:]) # without leading "_" which means that it is wrong value
             else:
-                html_file.write("\t<td title='" + input_sets[i] + "'>")
+                html_file.write("\t<td title='" + input_sets[i] +", " + str(row[0][0]) + "'>")
                 html_file.write(column[1])
             html_file.write("</td>\n")
             i += 1
