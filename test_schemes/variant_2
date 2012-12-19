@@ -27,7 +27,7 @@
         "name": "xor4"
     },
     {
-        "function" : "or",
+        "function" : "or4",
         "in": ["9", "10", "11", "12"],
         "out": "13",
         "name": "or"

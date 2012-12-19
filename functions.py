@@ -197,3 +197,6 @@ def function_na2(inputs):
     x1 = inputs[0]
     x2 = inputs[1]
     return int(not(x1 and x2))
+
+def function_or4(inputs):
+    return inputs[0] or inputs[1] or inputs[2] or inputs[3]
